@@ -644,30 +644,36 @@ ZGE     BSR     BCMP
 ;*-------------------------------
 ;* #39 TEST FOR LESS THAN (UNSIGNED)
 ULT     BSR     BCMP
-        BCS     T
-        BRA     F
+        BCS     F
+		BNE		T
+		TSTB
+		BEQ		F
+        BRA     T
 
 ;*-------------------------------
 ;* #40  TEST FOR LESS THAN OR EQUAL (UNSIGNED)
 ULE     BSR     BCMP
-        BLS     T
+        BCC     T
         BRA     F
 
 ;*-------------------------------
 ;* #41  TEST FOR GREATER THAN (UNSIGNED)
 UGT     BSR     BCMP
-        BHI     T
-        BRA     F
-
-;*------------------------------
-;* #42  TEST FOR GREATER THAN OR EQUAL (UNSIGNED)
-UGE     BSR     BCMP
-        BCC     T
+        BCS     T
 F       CLRB                    ;* RETURN FALSE
 		FCB		$8C				;* SKIP 2byte,CPX#
 T       LDAB    #1              ;* RETURN TRUE
 TRUE1   CLRA
         JMP     POPS            ;* POP STACK AND PROCEED
+
+;*------------------------------
+;* #42  TEST FOR GREATER THAN OR EQUAL (UNSIGNED)
+UGE     BSR     BCMP
+        BCS     T
+		BNE		F
+		TSTB
+		BNE		F
+		BRA		T
 
 ;*-------------------------------------
 ;* #43  SWITCH TO EXECUTABLE (ASSEMBLY) CODE
