@@ -86,6 +86,7 @@ NEXT2   LDAB    0,X             ;* GET THE PSEUDO-INSTRUCTION
         ldx     XTEMP           ;*
 ;*
         LDAB    zREG+1
+		LDAA	zREG
         LDX     0,X
         JMP     0,X             ;* SAVE THE WORK
 
@@ -303,14 +304,14 @@ JSRSP   staa    ATEMP           ;* Save A
         staa    XTEMP           ;* Save A to XTEMP
         stab    XTEMP+1         ;* Save B to XTEMP+1
         ldx     XTEMP           ;* Get address off the stack
-        ldaa    ATEMP           ;* Restore A
-        ldab    BTEMP           ;* Restore B
 ;                               ;*
 ;       LDD     zPC             ;* GET RETURN ADDRESS
         ldaa    zPC             ;* GET RETURN ADDRESS
         ldab    zPC+1           ;* GET RETURN ADDRESS
         PSHB                    ;* SAVE RETURN ADDRESS
         PSHA
+        ldaa    ATEMP           ;* Restore A
+        ldab    BTEMP           ;* Restore B
         JMP     NEXT2
 
 ;*-------------------------
