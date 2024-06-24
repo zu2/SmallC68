@@ -16,9 +16,9 @@
 
 /*      Define system dependent parameters      */
 
-extern struct _IO_FILE *stdout;
-extern struct _IO_FILE *stdin;
-extern struct _IO_FILE *stderr;
+//extern struct _IO_FILE *stdout;
+//extern struct _IO_FILE *stdin;
+//extern struct _IO_FILE *stderr;
 
 /*      Stand-alone definitions                 */
 
@@ -26,8 +26,11 @@ extern struct _IO_FILE *stderr;
 #define NULL	0
 #endif
 
-#ifdef __linux
+#if	1
+#include <stdio.h>
+#include <stdint.h>
 #define EOL 	'\n'            // \n = ^J 0x0A
+typedef	uint32_t	lval_t;
 #else
 #define EOL 	13              // \r = ^M 0x0D
 #endif
@@ -39,7 +42,6 @@ extern struct _IO_FILE *stderr;
 
 /*      UNIX definitions (if not stand-alone)   */
 
-/* #include <stdio.h>  */
 /* #define EOL 10       */
 
 /*      Define the symbol table parameters      */
@@ -132,10 +134,10 @@ extern void openin();
 extern void doinclude();
 extern void endinclude();
 extern void closeout();
-extern int  needsub();
+extern int16_t needsub();
 extern void newfunc();
 extern void newfile();
-extern int  statement();
+extern int16_t statement();
 extern void ns();
 extern void compound();
 extern void doif();
@@ -146,68 +148,68 @@ extern void docont();
 extern void doasm();
 extern void callfunction(char *ptr);
 extern void junk();
-extern int  endst();
+extern int16_t endst();
 extern void illname();
 extern void multidef(char *sname);
 extern void needbrack(char *str);
 extern void needlval();
 extern char *findglb(char *sname);
-extern int  findloc(char *sname);
+extern int16_t findloc(char *sname);
 
-extern char *addglb(char *sname, char id, char typ, int value);
-extern char *addloc(char *sname, char id, char typ, int value);
-extern int  isSymname(char *sname);
+extern char *addglb(char *sname, char id, char typ, int16_tvalue);
+extern char *addloc(char *sname, char id, char typ, int16_tvalue);
+extern int16_t isSymname(char *sname);
 
-extern int  getlabel();
-extern void printlabel(int label);
+extern int16_t getlabel();
+extern void printlabel(int16_tlabel);
 extern void pl(char *str);
-extern int  addwhile(int ptr[]);
+extern int16_t addwhile(int16_tptr[]);
 extern void delwhile();
-extern int  readwhile();
+extern int16_t readwhile();
 extern void kill();
-extern int  inbyte();
-extern int  inchar();
-extern int  myInline();
-extern int  keepch(char c);
-extern int  preprocess();
-extern int  addmac();
-extern int  putmac(char c);
-extern int  findmac(char *sname);
-extern int  outbyte(char c);
-extern int  outstr(char *ptr);
-extern int  nl();
-extern int  tab();
-extern int  col();
-extern int  bell();
-extern int  error(char ptr[]);
-extern int  ol(char ptr[]);
-extern int  ot(char ptr[]);
-extern int  match(char *lit);
-extern int  amatch(char *lit, int len);
+extern int16_t inbyte();
+extern int16_t inchar();
+extern int16_t myInline();
+extern int16_t keepch(char c);
+extern int16_t preprocess();
+extern int16_t addmac();
+extern int16_t putmac(char c);
+extern int16_t findmac(char *sname);
+extern int16_t outbyte(char c);
+extern int16_t outstr(char *ptr);
+extern int16_t nl();
+extern int16_t tab();
+extern int16_t col();
+extern int16_t bell();
+extern int16_t error(char ptr[]);
+extern int16_t ol(char ptr[]);
+extern int16_t ot(char ptr[]);
+extern int16_t match(char *lit);
+extern int16_t amatch(char *lit, int16_tlen);
 extern void blanks();
-extern void outdec(int numb);
+extern void outdec(int16_tnumb);
 extern void expression();
 
-extern int heir1(int lval[]);
-extern int heir2(int lval[]);
-extern int heir3(int lval[]);
-extern int heir4(int lval[]);
-extern int heir5(int lval[]);
-extern int heir6(int lval[]);
-extern int heir7(int lval[]);
-extern int heir8(int lval[]);
-extern int heir9(int lval[]);
-extern int heir10(int lval[]);
-extern int heir11(int *lval);
+extern int16_their1(lval_t lval[]);
+extern int16_their2(lval_t lval[]);
+extern int16_their3(lval_t lval[]);
+extern int16_their4(lval_t lval[]);
+extern int16_their5(lval_t lval[]);
+extern int16_their6(lval_t lval[]);
+extern int16_their7(lval_t lval[]);
+extern int16_their8(lval_t lval[]);
+extern int16_their9(lval_t lval[]);
+extern int16_their10(lval_t lval[]);
+extern int16_their11(lval_t *lval);
 
-extern int  primary(int *lval);
-extern void store(int *lval);
-extern void rvalue(int *lval);
-extern void test(int label);
-extern int  constant(int val[]);
-extern int  number(int val[]);
-extern int  pstr(int val[]);
-extern int  qstr(int val[]);
+extern int16_t primary(lval_t *lval);
+extern void store(lval_t *lval);
+extern void rvalue(lval_t *lval);
+extern void test(lval_t label);
+extern int16_t constant(lval_t val[]);
+extern int16_t number(lval_t val[]);
+extern int16_t pstr(lval_t val[]);
+ymxtern int16_t qstr(lval_t val[]);
 extern void comment();
 extern void header();
 extern void trailer();
@@ -223,13 +225,13 @@ extern void swapstk();
 extern void zcall(char *sname);
 extern void zret();
 extern void callstk();
-extern void jump(int label);
-extern void testjump(int label);
-extern void pseudoins(int k);
+extern void jump(int16_tlabel);
+extern void testjump(int16_tlabel);
+extern void pseudoins(int16_tk);
 extern void defbyte();
 extern void defstorage();
 extern void defword();
-extern int  modstk(int newsp);
+extern int16_t modstk(int16_tnewsp);
 extern void doublereg();
 extern void zadd();
 extern void zsub();
@@ -246,24 +248,24 @@ extern void com();
 extern void inc();
 extern void dec();
 
-extern int  alpha(char c);
-extern int  numeric(char c);
-extern int  an(char c);
-extern int  ch();
-extern int  nch();
-extern int  gch();
+extern int16_t alpha(char c);
+extern int16_t numeric(char c);
+extern int16_t an(char c);
+extern int16_t ch();
+extern int16_t nch();
+extern int16_t gch();
 extern void toconsole();
 extern void tofile();
-extern int  streq(char str1[], char str2[]);
-extern int  astreq(char str1[], char str2[], int len;);
+extern int16_t streq(char str1[], char str2[]);
+extern int16_t astreq(char str1[], char str2[], int16_tlen;);
 
 extern void myAbort();
-extern int  myFclose(FILE *fp);
+extern int16_t myFclose(FILE *fp);
 extern char *myGets(char *);
 
-extern void declglb(int typ);
-extern void declloc(int typ);
-extern void getarg(int t);
+extern void declglb(int16_ttyp);
+extern void declloc(int16_ttyp);
+extern void getarg(int16_tt);
 
 extern void blanks();
 extern void zeq();
@@ -277,7 +279,7 @@ extern void ule();
 extern void ugt();
 extern void uge();
 
-extern void doError(int i);
+extern void doError(int16_t i);
 extern void options(int argc, char **argv);
 
 extern FILE *output;    /* no open units */
@@ -287,7 +289,7 @@ extern FILE *saveout;   /* no diverted output */
 
 extern char    symtab[SYMTBSZ];        /* symbol table */
 extern char    *glbptr;                /* ptrs to next entries */
-extern int     locptr;
+extern int16_t    locptr;
 
 extern char    wq[WQTABSZ];            /* while queue */
 extern char    *wqidx;                 /* ptr to next entry */
@@ -304,7 +306,7 @@ extern char    lidx,midx;              /* ptrs into each */
 
 /*      Misc storage    */
 
-extern int     nxtlab,         /* next avail label # */
+extern int16_t    nxtlab,         /* next avail label # */
         litlab,         /* label # assigned to literal pool */
         Zsp,            /* compiler relative stk ptr */
         argstk,         /* function arg sp */
@@ -329,7 +331,7 @@ extern char   *currfn,         /* ptr to symtab entry for current fn. */
        *savecurr;       /* copy of currfn for #include */
 extern char    quote[2];       /* literal string for '"' */
 extern char    *cptr;          /* work ptr to any char buffer */
-extern int     *iptr;          /* work ptr to any int buffer */
+extern int16_t    *iptr;          /* work ptr to any int16_tbuffer */
 
 #else
 extern void parse();
@@ -371,9 +373,9 @@ extern long isSymname(char *sname);
 extern long getlabel();
 extern void printlabel(long label);
 extern void pl(char *str);
-extern void addwhile(long ptr[]);
+extern void addwhile(char ptr[]);
 extern void delwhile();
-extern long *readwhile();
+extern char *readwhile();
 extern void kill();
 extern long inbyte();
 extern long inchar();
@@ -514,7 +516,7 @@ extern char    lidx,midx;              /* ptrs into each */
 
 /*      Misc storage    */
 
-extern long    nxtlab,         /* next avail label # */
+extern int16_t    nxtlab,         /* next avail label # */
         litlab,         /* label # assigned to literal pool */
         Zsp,            /* compiler relative stk ptr */
         argstk,         /* function arg sp */
@@ -542,7 +544,7 @@ extern char    *cptr;          /* work ptr to any char buffer */
 extern long    *iptr;          /* work ptr to any long buffer */
 #endif
 
-extern int errCnt;
+extern int16_t errCnt;
 
 #ifndef FDEBUG
 #warning FDEBUG not defined

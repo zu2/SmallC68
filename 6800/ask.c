@@ -5,13 +5,14 @@
 
 #include "smallc.h"
 
-#ifndef __linux
+#if	0
 /*                                      */
 /*      Get options from user           */
 /*                                      */
 void
 ask() {
-    int k,num[1];
+    int k;
+	long num[1];
     kill();                 /* clear input line */
 
     outbyte(CLS);           /* clear the screen */

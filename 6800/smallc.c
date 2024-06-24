@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "smallc.h"
 
@@ -23,7 +24,7 @@
 #ifdef SKIP
 char    symtab[SYMTBSZ];        /* symbol table */
 char    *glbptr;                /* ptrs to next entries */
-int     locidx;
+int16_t     locidx;
 
 char    wq[WQTABSZ];            /* while queue */
 char    *wqidx;                 /* ptr to next entry */
@@ -98,7 +99,7 @@ FILE *saveout;           /* no diverted output */
 
 /*      Misc storage    */
 
-long    nxtlab,         /* next avail label # */
+int16_t    nxtlab,         /* next avail label # */
         litlab,         /* label # assigned to literal pool */
         Zsp,            /* compiler relative stk ptr */
         argstk,         /* function arg sp */
@@ -126,7 +127,7 @@ char    *cptr;          /* work ptr to any char buffer */
 long    *iptr;          /* work ptr to any long buffer */
 #endif
 
-int errCnt = 0;
+int16_t errCnt = 0;
 /*      >>>>> start cc1 <<<<<<          */
 
 /*                                      */
@@ -135,7 +136,7 @@ int errCnt = 0;
 int
 main(int argc, char *argv[]) {
     glbptr=STARTGLB;        /* clear global symbols */
-    locidx=STARTLOC;        /* clear local symbols */
+    locidx=(long)STARTLOC;        /* clear local symbols */
     wqidx=wq;               /* clear while queue */
 
     output  = stdout;       /* no open units */
@@ -165,7 +166,7 @@ main(int argc, char *argv[]) {
     /*                              */
     errstop = 0;
 
-#ifdef __linux
+#if	1
     options(argc, argv);
 #else
     ask();                  /* get user options */
@@ -380,8 +381,10 @@ declglb(long typ) {              /* typ is CCHAR or CINT */
                 j=POINTER;      /* yes */
             else
                 j=VARIABLE; /* no */
-            if (isSymname(sname)==0) /* name ok? */
+            if (isSymname(sname)==0){ /* name ok? */
+//				fprintf(stderr,"%ld:declglb: %s\n",__LINE__,sname);
                 illname(); /* no... */
+			}
             if(findglb(sname)) /* already there? */
                 multidef(sname);
             if (match("[")) {        /* array? */
@@ -413,8 +416,10 @@ declloc(long typ) {              /* typ is CCHAR or CINT */
             j=POINTER;
         else
             j=VARIABLE;
-        if (isSymname(sname)==0)
+        if (isSymname(sname)==0){
+//			fprintf(stderr,"%ld: declloc: %s\n",__LINE__,sname);
             illname();
+		}
         if(findloc(sname))
             multidef(sname);
         if (match("[")) {
@@ -519,7 +524,7 @@ newfunc() {
             if(endst())break;
         }
     }
-    locidx=STARTLOC;        /* "clear" local symbol table*/
+    locidx=(long)STARTLOC;        /* "clear" local symbol table*/
     Zsp=0;                  /* preset stack ptr */
     while(argstk) {
         /* now let user declare what types of things */
@@ -539,7 +544,7 @@ newfunc() {
         zret();
     }
     Zsp=0;                  /* reset stack ptr again */
-    locidx=STARTLOC;        /* deallocate all locals */
+    locidx=(long)STARTLOC;        /* deallocate all locals */
     infunc=0;               /* not in fn. any more   */
 }
 
@@ -560,8 +565,10 @@ getarg(long t) {              /* t = CCHAR or CINT */
         else
             j=VARIABLE;
 
-        if(isSymname(n)==0)
+        if(isSymname(n)==0){
+//			fprintf(stderr,"%ld: getarg: %s\n",__LINE__,n);
             illname();
+		}
 
         if(findloc(n))
             multidef(n);
@@ -654,6 +661,7 @@ void
 doif() {
     int flev,fsp,flab1,flab2;
 
+//	fprintf(stderr,"%ld: doif\n",__LINE__);
     flev  = locidx;              /* record current local level */
     fsp   = Zsp;                 /* record current stk ptr */
     flab1 = getlabel();          /* get label for false branch */
@@ -687,7 +695,7 @@ dowhile() {
     wql[WQSP]=Zsp;          /* and stk ptr */
     wql[WQLOOP]=getlabel(); /* and looping label */
     wql[WQLAB]=getlabel();  /* and exit label */
-    addwhile(wql);          /* add entry to queue */
+    addwhile((char *)wql);          /* add entry to queue */
 
     /* (for "break" statement) */
     printlabel(wql[WQLOOP]);col();nl(); /* loop label */
@@ -717,8 +725,9 @@ doreturn() {
 /*                                      */
 void
 dobreak() {
-    long *ptr;
+    char *ptr;
     /* see if any "whiles" are open */
+//	fprintf(stderr,"%ld: dobreak\n",__LINE__);
     ptr = readwhile();
     if (ptr == 0)
         return;       /* no */
@@ -731,7 +740,8 @@ dobreak() {
 /*                                      */
 void
 docont() {
-    long *ptr;
+    char *ptr;
+//	fprintf(stderr,"%ld: docont\n",__LINE__);
     /* see if any "whiles" are open */
     ptr = readwhile();
     if (ptr == 0) return;       /* no */
@@ -793,9 +803,9 @@ callfunction(char *ptr) {
 
 void
 junk() {
-    if(an(inbyte())) {
-        while(an(ch()))gch();
-    } else while(an(ch()) == 0) {
+    if(isalnum(inbyte())) {
+        while(isalnum(ch()))gch();
+    } else while(isalnum(ch()) == 0) {
         if(ch()==0)break;
         gch();
     }
@@ -853,9 +863,9 @@ findloc(char *sname) {
     char *ptr;
 
     ptr = STARTLOC;
-    while(ptr!=locidx) {
+    while((long)ptr!=locidx) {
         if(astreq(sname,ptr,NAMEMAX))
-            return (ptr);
+            return ((long)ptr);
         ptr = ptr+SYMSIZ;
     }
     return (0);
@@ -872,7 +882,7 @@ addglb(char *sname, char id, char typ, long value) {
     }
     cptr=ptr=glbptr;
 
-    while(an(*ptr++ = *sname++));   /* copy name */
+    while(isalnum(*ptr++ = *sname++));   /* copy name */
 
     cptr[IDENT]=id;
     cptr[TYPE]=typ;
@@ -886,13 +896,13 @@ addglb(char *sname, char id, char typ, long value) {
 char *
 addloc(char *sname, char id, char typ, long value) {
     char *ptr;
-    if(cptr=findloc(sname))return (cptr);
-    if(locidx>=ENDLOC) {
+    if(cptr=(char *)findloc(sname))return (cptr);
+    if(locidx>=(long)ENDLOC) {
         error("local symbol table overflow");
         return (0);
     }
-    cptr=ptr=locidx;
-    while(an(*ptr++ = *sname++));   /* copy name */
+    cptr=ptr=(char *)locidx;
+    while(isalnum(*ptr++ = *sname++));   /* copy name */
     cptr[IDENT]=id;
     cptr[TYPE]=typ;
     cptr[STORAGE]=STKLOC;
@@ -907,10 +917,11 @@ long
 isSymname(char *sname) {
     int k;char c;
     blanks();
+//	fprintf(stderr,"%ld: ch=%02x '%c'\n",__LINE__,ch(),ch());
     if(alpha(ch())==0)
-        return (0);
+       return (0);
     k=0;
-    while(an(ch()))
+    while(isalnum(ch()))
         sname[k++]=gch();
     sname[k]=0;
     return (1);
@@ -931,7 +942,7 @@ printlabel(long label) {
 }
 
 void
-addwhile(long ptr[]) {
+addwhile(char ptr[]) {
     int k;
     if (wqidx==WQMAX) {
         error("too many active whiles");return;}
@@ -943,15 +954,16 @@ addwhile(long ptr[]) {
 
 void
 delwhile() {
+//	fprintf(stderr,"%ld: delwhile: %s\n",__LINE__,wqidx);
     if(readwhile())
         wqidx=wqidx-WQSIZ;
 }
 
 //int
-long *
+char *
 readwhile() {
     if (wqidx==wq) {
-        error("no active whiles");
+        error("no active whiles");	exit(0);
         return (0);
     } else {
         return (wqidx-WQSIZ);
@@ -1043,35 +1055,6 @@ keepch(char c) {
     return (c);
 }
 
-/*
-* / * C Demo Program * /
-*#include "run9.c"
-^C
-Program received signal SIGINT, Interrupt.
-preprocess () at smallc.c:2221
-2221        return(line[lidx]&127);
-(gdb) bt
-#0  preprocess () at smallc.c:2221
-#1  0x00005555555590b6 in preprocess () at smallc.c:1005
-#2  blanks () at smallc.c:1239
-#3  amatch (lit=<synthetic pointer>, len=4) at smallc.c:1225
-#4  parse () at smallc.c:151
-#5  0x0000555555555212 in main (argc=<optimized out>, argv=<optimized out>) at smallc.c:115
-(gdb) print line
-$1 = "#include \"run9.c\"\000*", '\000' <repeats 59 times>
-(gdb) print lidx
-$2 = 0 '\000'
-
-It seems to hang here
-main()
-  parse()
-    amatch()
-      blanks()
-        preprocess()
-line 2221 return(line[lidx]&127);
-but that's actual part of ch() 
-So we're off the rails
- */
 void
 preprocess() {
     int k;
@@ -1120,9 +1103,9 @@ preprocess() {
                 if(eof) break;
             }
             inchar();inchar();
-        } else if(an(ch())) {   // A number
+        } else if(isalnum(ch())) {   // A number
            k=0;
-            while(an(ch())) {
+            while(isalnum(ch())) {
                 if(k<NAMEMAX) sname[k++]=ch();
                 gch();
             }
@@ -1135,7 +1118,7 @@ preprocess() {
                 while(c = sname[k++])
                     keepch(c);
             }
-        } else if(ch() == NULL){
+        } else if(ch() == 0){
             break;
         } else {
             keepch(gch());
@@ -1159,6 +1142,7 @@ addmac() {
     int k;
 
     if(isSymname(sname)==0) {
+//		fprintf(stderr,"%ld: addmac: %s\n",__LINE__,sname);
         illname();
         kill();
         return;
@@ -1202,7 +1186,7 @@ outstr(char *ptr) {
     while(outbyte(*ptr++));
 }
 
-#ifdef __linux
+#if	1
 void
 nl() {
     outbyte('\n');
@@ -1307,11 +1291,14 @@ long
 amatch(char *lit, long len) {
     int k;
     blanks();
+//fprintf(stderr,"%ld: amatch0: line=%s,lit=%s,len=%ld,k=%d\n",__LINE__,line+lidx,lit,len,k);
     if (k=astreq((char *) line+lidx,lit,len)) {
         lidx=lidx+k;
-        while(an(ch())) inbyte();
+        while(isalnum(ch())) inbyte();
+//fprintf(stderr,"%ld: amatch1: line=%s,lit=%s,len=%ld,k=%d\n",__LINE__,line+lidx,lit,len,k);
         return (1);
     }
+//fprintf(stderr,"%ld: amatch2: line=%s,lit=%s,len=%ld,k=%d\n",__LINE__,line+lidx,lit,len,k);
     return (0);
 }
 
@@ -1382,9 +1369,9 @@ primary(long *lval) {
     // GRRR sname gets populate in isSymname
     //
     if(isSymname(sname)) {
-        if(ptr = findloc(sname)) {
+        if(ptr = (char *)findloc(sname)) {
             getloc(ptr);
-            lval[0]=ptr;
+            lval[0]=(long)ptr;
             lval[1]=ptr[TYPE];
             if(ptr[IDENT]==POINTER)lval[1]=CINT;
             if(ptr[IDENT]==ARRAY)return (0);
@@ -1393,7 +1380,7 @@ primary(long *lval) {
 
         if(ptr=findglb(sname)) {
             if(ptr[IDENT]!=FUNCTION) {
-                lval[0]=ptr;
+                lval[0]=(long)ptr;
                 lval[1]=0;
                 if(ptr[IDENT]!=ARRAY)return (1);
                 immed();
@@ -1404,7 +1391,7 @@ primary(long *lval) {
         }
 
         ptr=addglb(sname,FUNCTION,CINT,0);
-        lval[0]=ptr;
+        lval[0]=(long)ptr;
         lval[1]=0;
         return (0);
     }
@@ -1421,14 +1408,14 @@ primary(long *lval) {
 
 void
 store(long *lval) {
-    if (lval[1]==0) putmem(lval[0]);
+    if (lval[1]==0) putmem((char*)(lval[0]));
     else            putstk(lval[1]);
 }
 
 void
 rvalue(long *lval) {
     if((lval[0] != 0) && (lval[1] == 0)) {
-        getmem(lval[0]);
+        getmem((char *)(lval[0]));
     } else {
         indirect(lval[1]);
     }
@@ -1579,7 +1566,7 @@ void
 getloc(char *sym) {
     outstr("\n;* getloc(1)\n");
     pseudoins(1); defword();
-    outdec((sym[OFFSET]&255)*256+(sym[OFFSET+1]&255)-Zsp);
+    outdec(((sym[OFFSET]&255)*256+(sym[OFFSET+1]&255)-Zsp)&0x0ffff);
     nl();
 }
 
@@ -2012,13 +1999,6 @@ numeric(char c) {
     return((c>='0') && (c<='9'));
 }
 
-/*       Test if given char is alphanumeric      */
-//int
-long
-an(char c) {
-    return( alpha(c) || numeric(c) );
-}
-
 // Current ch but not null
 //int
 long
@@ -2068,7 +2048,8 @@ astreq(char str1[], char str2[], int len) {
     k=0;
 
     while (k<len) {
-        if ((str1[k]) != (str2[k])) break;
+        if ((str1[k]) != (str2[k])) return 0;
+//        if ((str1[k]) != (str2[k])) break;
         if (str1[k]==0) break;
         /* if (str2[k]==0) break;  /*  seems and is redundant !!!! */
         k++;
