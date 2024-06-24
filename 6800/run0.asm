@@ -598,38 +598,48 @@ BCMP    TSX
 ;*-------------------------------
 ;* #33  TEST FOR EQUALITY
 ZEQ     BSR     BCMP
-        BEQ     T
-        BRA     F
+        BNE     F
+		TSTB
+        BNE     F
+		BRA		T
 
 ;*-------------------------------
 ;* #34  TEST FOR NOT-EQUAL
 ZNE     BSR     BCMP
         BNE     T
-        BRA     F
+		TSTB
+		BNE		T
+		JMP		POPS			;* AccA,B=0
 
 ;*-------------------------------
 ;* #35  TEST FOR LESS THAN
 ZLT     BSR     BCMP
-        BLT     T
-        BRA     F
+        BLT     F
+		BNE		T
+		TSTB
+		BEQ		F
+        BRA     T
 
 ;*-------------------------------
 ;* #36  TEST FOR LESS THAN OR EQUAL
 ZLE     BSR     BCMP
-        BLE     T
-        BRA     F
+		BLT		F
+        BRA     T
 
 ;*-------------------------------
 ;* #37  TEST FOR GREATER THAN
 ZGT     BSR     BCMP
-        BGT     T
+        BLT     T
         BRA     F
 
 ;*-------------------------------
 ;* #38  TEST FOR GREATER THAN OR EQUAL
 ZGE     BSR     BCMP
-        BGE     T
-        BRA     F
+        BGT     F
+		BNE		T
+		TSTB
+		BNE		F
+        BRA     T
 
 ;*-------------------------------
 ;* #39 TEST FOR LESS THAN (UNSIGNED)
@@ -654,7 +664,7 @@ UGT     BSR     BCMP
 UGE     BSR     BCMP
         BCC     T
 F       CLRB                    ;* RETURN FALSE
-        BRA     TRUE1
+		FCB		$8C				;* SKIP 2byte,CPX#
 T       LDAB    #1              ;* RETURN TRUE
 TRUE1   CLRA
         JMP     POPS            ;* POP STACK AND PROCEED
