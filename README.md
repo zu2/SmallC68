@@ -1,3 +1,10 @@
+fork from - [linuxha/SmallC68: FLEX 6800 Small C compiler](https://github.com/linuxha/SmallC68)
+
+The license and other restrictions of this fork follow the original.
+I am interested in a compiler for the MC6800, and I don't know (can't check) whether the code for MC6801/3/9 will work correctly.
+
+								ZUKERAN, shin (@zu2)
+
 # SmallC68XX - Small C for the Motorola 68XX family under Linux 
 
 I am on a quest for a Small C compiler to support the various 6800/6803/6809/68000 boards I have. So with that in mind I am posting my notes and everything else I find on Small C. So for a while this will be quite a mess.
