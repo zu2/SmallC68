@@ -244,45 +244,40 @@ PUSHR1  PSHB
 
 ;*-------------------------
 ;* #11  SWAP REG AND TOP OF STACK
-;XG1    PULX                    ;* @FIXME: Need a proper pull
-EXG1    staa    ATEMP           ;* GET ADDRESS
-        stab    BTEMP           ;* Save B
-        pula                    ;* Get Address of stack
-        pulb                    ;*
-        staa    XTEMP           ;* Save A to XTEMP
-        stab    XTEMP+1         ;* Save B to XTEMP+1
-        ldx     XTEMP           ;* Get Address and put it in X
-        ldaa    ATEMP           ;* Restore A
-        ldab    BTEMP           ;* Restore B
-;
-        STX     zREG            ;* SAVE
-        PSHB
-        PSHA                    ;* REG ON STACK
-;       LDD     zREG            ;* NEW REG
-        ldaa    zREG            ;* NEW REG
-        ldab    zREG+1          ;* NEW REG
+EXG1	TSX
+		LDX		0,X
+		STX		zREG
+		TSX
+		STAA	0,X
+		STAB	1,X
         LDX     zPC
+        JMP     NEXT2
+
+;*-------------------------
+;* #12  JUMP TO LABEL
+JMPL    LDX     zPC
+JMP1    LDX     0,X             ;* GET ADDRESS (NEW zPC)
         JMP     NEXT2
 
 ;*-------------------------
 ;* #13  JUMP TO LABEL IF FALSE
 BRZL    ORAA    zREG+1          ;* SET FLAGS
         BEQ     JMPL            ;* IF REG=0 -- JUMP
-        JMP     BUMP2           ;* ELSE, PROCEED
+		LDX		zPC
+		INX
+		INX
+        JMP     NEXT2           ;* ELSE, PROCEED
 
 ;*-------------------------
 ;* #14  CALL TO LABEL
-JSRL	LDAB	zPC+1
+JSRL	LDX		zPC
+		LDAB	zPC+1
 		LDAA	zPC
 		ADDB	#2
 		ADCA	#0
 		PSHB
 		PSHA
-;*-------------------------
-;* #12  JUMP TO LABEL
-JMPL    LDX     zPC
-JMP1    LDX     0,X             ;* GET ADDRESS (NEW zPC)
-        JMP     NEXT2
+		BRA		JMP1
 
 ;*-------------------------
 ;* #15  CALL TO TOP OF STACK
@@ -321,10 +316,9 @@ MODSP   LDX     zPC
         staa    STEMP
         stab    STEMP+1
         LDS     STEMP           ;* NEW STACK POINTER
-;       LDD     zREG            ;* RESTORE REGISTER
-        ldaa    zREG            ;* RESTORE REGISTER
-        ldab    zREG+1          ;* RESTORE REGISTER
-        JMP     BUMP2A
+		INX
+		INX
+		JMP		NEXT2
 
 ;*---------------------------
 ;* #18  DOUBLE THE PRIMARY REGISTER
@@ -562,15 +556,11 @@ DECR    subb    #$01
 ;*   BASIC COMPARE INSTRUCTION SUBROUTINE
 ;*   Compare the top of Stack to Register and set Condition codes
 ;*
-;*  Unsigned compare, Carry set if top of stack < A,B
+;*	Note that the left side is subtracted from the right side
 ;*
 BCMP    TSX
-;       ldd     2,X             ;* GET TOP OF STACK
-        ldaa    2,X             ;* GET TOP OF STACK
-        ldab    3,X             ;* GET TOP OF STACK
-;       subd    zREG            ;* COMPARE
-        subb    zREG+1          ;* COMPARE
-        sbca    zREG            ;* COMPARE
+        SUBB    3,X
+        SBCA    2,X
         RTS
 
 
