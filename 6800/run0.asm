@@ -1,6 +1,6 @@
-	MACEXP  on
+;	MACEXP  on
 
-        CPU     6800            ; That's what asl has
+;        CPU     6800            ; That's what asl has
 ;*/* Small C Demo Program */
 ;*/*
 ;*#include "run9.c"               /* Must use double quotes not <> * /
@@ -32,8 +32,6 @@ DFLAG   RMB     1               ;* DIVIDE ROUTINE FLAG
 STEMP   RMB     2               ;* TEMP STORAGE FOR STACK POINTER
 
 XTEMP   RMB     2
-ATEMP   RMB     1
-BTEMP   RMB     1
 
 ;***************************************************
 
@@ -65,25 +63,17 @@ BUMP2   LDX     zPC             ;* GET PROG COUNTER
 BUMP2A  INX                     ;* INCR BY 2
         INX
         BRA     NEXT1           ;* FETCH NEXT INSTRUCTION
-
 NEXT    LDX     zPC
-;EXT1   std     zREG            ;* SAVE THE WORK
 NEXT1   staa    zREG            ;* SAVE THE WORK
         stab    zREG+1          ;*
 NEXT2   LDAB    0,X             ;* GET THE PSEUDO-INSTRUCTION
         INX                     ;* (B CONTAINS A TABLE OFFSET)
         STX     zPC             ;* SAVE NEW zPC
-        LDX     #JTABLE         ;* POINT TO ROUTINE
-;*
-;* ABX -> X <- X + B
-;*
-        stx     XTEMP           ;* Save X to XTEMP or XHI
-        clra
-        addb    XTEMP+1         ;* add X lo to B
-        adca    XTEMP           ;* add the X hi + CC to A
-        staa    XTEMP           ;* retore X
-        stab    XTEMP+1         ;* retore X
-        ldx     XTEMP           ;*
+		ADDB	#JTABLE%256
+		ADCA	#JTABLE/256
+		STAA	XTEMP
+		STAB	XTEMP+1
+        LDX     XTEMP           ;*
 ;*
         LDAB    zREG+1
 		LDAA	zREG
@@ -578,7 +568,7 @@ ZNE     BSR     BCMP
         BNE     T
 		TSTB
 		BNE		T
-		JMP		POPS			;* AccA,B=0
+		BRA		POPS			;* AccA,B=0
 
 ;*-------------------------------
 ;* #35  TEST FOR LESS THAN
