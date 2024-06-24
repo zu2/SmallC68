@@ -265,12 +265,6 @@ EXG1    staa    ATEMP           ;* GET ADDRESS
         JMP     NEXT2
 
 ;*-------------------------
-;* #12  JUMP TO LABEL
-JMPL    LDX     zPC
-JMP1    LDX     0,X             ;* GET ADDRESS (NEW zPC)
-        JMP     NEXT2
-
-;*-------------------------
 ;* #13  JUMP TO LABEL IF FALSE
 BRZL    ORAA    zREG+1          ;* SET FLAGS
         BEQ     JMPL            ;* IF REG=0 -- JUMP
@@ -278,55 +272,39 @@ BRZL    ORAA    zREG+1          ;* SET FLAGS
 
 ;*-------------------------
 ;* #14  CALL TO LABEL
-JSRL    LDX     zPC
-        INX                     ;* ADJUST RETURN
-        INX                     ;* -- ADDRESS
-;       PSHX                    ;* PUSH RETURN ADDRESS @FIXME: Need a proper push
-        staa    ATEMP
-        stab    BTEMP
-        stx     XTEMP
-        ldaa    XTEMP
-        ldab    XTEMP+1
-        pshb
-        psha
-        ldaa    ATEMP
-        ldab    BTEMP
-;       PSHX                    ;* PUSH RETURN ADDRESS @FIXME: Need a proper push
-        BRA     JMPL
+JSRL	LDAB	zPC+1
+		LDAA	zPC
+		ADDB	#2
+		ADCA	#0
+		PSHB
+		PSHA
+;*-------------------------
+;* #12  JUMP TO LABEL
+JMPL    LDX     zPC
+JMP1    LDX     0,X             ;* GET ADDRESS (NEW zPC)
+        JMP     NEXT2
 
 ;*-------------------------
 ;* #15  CALL TO TOP OF STACK
 ;SRSP   PULX                    ;*
-JSRSP   staa    ATEMP           ;* Save A
-        stab    BTEMP           ;* Save B
-        pula                    ;* Get X off the stack
-        pulb                    ;*
-        staa    XTEMP           ;* Save A to XTEMP
-        stab    XTEMP+1         ;* Save B to XTEMP+1
-        ldx     XTEMP           ;* Get address off the stack
-;                               ;*
-;       LDD     zPC             ;* GET RETURN ADDRESS
-        ldaa    zPC             ;* GET RETURN ADDRESS
-        ldab    zPC+1           ;* GET RETURN ADDRESS
-        PSHB                    ;* SAVE RETURN ADDRESS
-        PSHA
-        ldaa    ATEMP           ;* Restore A
-        ldab    BTEMP           ;* Restore B
+JSRSP   TSX
+		LDX		0,X
+		STX		XTEMP
+		TSX
+		LDAB	zPC+1
+		LDAA	zPC
+		STAB	1,X
+		STAA	0,X
+		LDX		XTEMP
         JMP     NEXT2
 
 ;*-------------------------
 ;* #16  RETURN TO Small C CALLER
 ;TSC    PULX                    ;* GET ADDRESS
-RTSC    staa    ATEMP           ;* GET ADDRESS
-        stab    BTEMP           ;* Save B
-        pula                    ;* Get Address of stack
-        pulb                    ;*
-        staa    XTEMP           ;* Save A to XTEMP
-        stab    XTEMP+1         ;* Save B to XTEMP+1
-        ldx     XTEMP           ;* Get Address and put it in X
-        ldaa    ATEMP           ;* Restore A
-        ldab    BTEMP           ;* Restore B
-;*
+RTSC    TSX
+		LDX		0,X
+		INS
+		INS
         JMP     NEXT1
 
 ;*-------------------------
